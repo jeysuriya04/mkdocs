@@ -1,0 +1,4480 @@
+openapi: 3.0.1
+info:
+  title: EMS
+  description: |
+    The Entitlement Management System (EMS) acts as a bridge between all the Trimble Businesses by creating a unified view of Trimble’s products for customers. Entitlements utilize Trimble Identity as a gateway to connect users to their licensed products and services and as the source for licensing end-users products and services. A product should be set-up before Entitlements can be engaged. EMS v4.1 is an upgraded version of the Entitlement Management System, designed to provide a unified view of Trimble's products for customers. This version offers improvements in response format and orchestration processes.                 <br><b>Last Updated Date: 2023-Dec-22
+  termsOfService: https://example.com/terms
+  contact:
+    name: EMS Dev
+    url: https://example.com/contact
+  license:
+    name: Example License
+    url: https://example.com/license
+  version: v4.1
+paths:
+  /services:
+    post:
+      tags:
+        - Services
+      summary: Create Service
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: CreateService
+      description: You can use the API to create a service.
+      requestBody:
+        description: |
+
+          Service details to create a service
+
+          | Parameter | Type    | Description                                      | Requirement |
+          |-----------|---------|--------------------------------------------------|-------------|
+          | name      | String  | Provides information about the name of the service. | Mandatory  |
+          | active    | Boolean | Provides information about the status of the service. | Optional   |
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceCommand'
+        required: true
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter | Type    | Description                                            | Requirement |
+            |-----------|---------|--------------------------------------------------------|-------------|
+            | id        | String  | An alphanumeric string that identifies the service.   | Mandatory  |
+            | name      | String  | Provides information about the name of the service.   | Mandatory  |
+            | active    | Boolean | Provides information about the status of the service. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '400':
+          description: |
+            1. Fields - Name and Active are mandatory fields.  One or more fields are missing.
+            2. Active attribute should be a boolean.
+            3. Name attribute should be a string.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '409':
+          description: |
+            1.Given service Name is already present.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    get:
+      tags:
+        - Services
+      summary: Get all services
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to retrieve all the services associated with an application Id.
+      operationId: GetAllServices
+      parameters:
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. Default value is 10 if not specified. Maximum can be 25.
+          schema:
+            type: number
+        - name: pageKey
+          in: query
+          description: The user must provide page value if nextPage is available in last response
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            All services
+            | Parameter | Type    | Description                                                        | Requirement |
+            |-----------|---------|--------------------------------------------------------------------|-------------|
+            | nextPageKey  | String  | Provide the key obtained in previous page response, to access the next page   | Mandatory  |
+            | id        | String  | An alphanumeric string that identifies information about the service. | Mandatory  |
+            | name      | String  | Provides information about the name of the service.                 | Mandatory  |
+            | active    | Boolean | Provides information about the status of the service.               | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Services'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /services/{serviceId}:
+    get:
+      tags:
+        - Services
+      summary: Service of Id
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to retrieve a service by using its Id.
+      operationId: Getservicebyid
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            | Parameter | Type    | Description                                            | Requirement |
+            |-----------|---------|--------------------------------------------------------|-------------|
+            | id        | String  | An alphanumeric string that identifies the service.   | Mandatory  |
+            | name      | String  | Provides information about the name of the service.   | Mandatory  |
+            | active    | Boolean | Provides information about the status of the service. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given service ID is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    patch:
+      tags:
+        - Services
+      summary: Update service
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to update the status of a service by using its service Id.
+      operationId: UpdateServiceById
+      parameters:
+        - name: serviceId
+          in: path
+          description: Id of the service which needs to be updated.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: |
+
+          | Parameter | Type    | Description                                      | Requirement |
+          |-----------|---------|--------------------------------------------------|-------------|
+          | active    | Boolean | Provides information about the status of the service. | Mandatory  |
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateServiceCommand'
+        required: true
+      responses:
+        '200':
+          description: |
+            Service updated successfully
+            | Parameter | Type    | Description                                            | Requirement |
+            |-----------|---------|--------------------------------------------------------|-------------|
+            | id        | String  | An alphanumeric string that identifies the service.   | Mandatory  |
+            | name      | String  | Provides information about the name of the service.   | Mandatory  |
+            | active    | Boolean | Provides information about the status of the service. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '400':
+          description: |
+            1. Active attribute should be a boolean.
+            2. Active attribute is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given service ID is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /features:
+    post:
+      tags:
+        - Features
+      summary: Create Feature
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: CreateFeature
+      description: You can use the API to create a feature from a service.
+      requestBody:
+        description: |
+          Feature details to create a feature
+          | Parameter  | Type    | Description                                                      | Requirement |
+          |------------|---------|------------------------------------------------------------------|-------------|
+          | name       | String  | Provides information about the version of the feature.           | Mandatory  |
+          | description| String  | A field that provides information about the feature.             | Optional   |
+          | active     | Boolean | Provides information about the status of the feature.            | Optional   |
+          | featureId  | String  | You can use this parameter to retrieve the ID of the feature to which a product is associated. | Mandatory  |
+          | service    | String  | The parameter provides information about the service to which the feature is associated. | Mandatory  |
+          | usage      | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Optional   |
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeatureCommand'
+        required: true
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter  | Type    | Description                                                     | Requirement |
+            |------------|---------|-----------------------------------------------------------------|-------------|
+            | id         | String  | An alphanumeric string that identifies information about the feature. | Mandatory  |
+            | name       | String  | Provides information about the name of the feature.              | Mandatory  |
+            | description| String  | A field that provides information about the feature.             | Optional   |
+            | active     | Boolean | Provides information about the status of the feature.            | Optional   |
+            | service    | String  | The parameter provides information about the service to which the feature is associated. | Mandatory  |
+            | usage      | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+        '400':
+          description: |
+            1. Fields - name, featureId and service are mandatory fields.If usage is present, metric and max are required.One or more fields are missing.
+            2. Attribute should be of the mentioned type.
+            3. Given Service name is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    get:
+      tags:
+        - Features
+      summary: Get Features
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        We can retrieve the list of features by using the service name and the service Id.
+      operationId: GetAllFeatures
+      parameters:
+        - name: service
+          in: query
+          description: Get list of features associated with the service.
+          schema:
+            type: string
+        - name: serviceId
+          in: query
+          description: Get list of features associated with the serviceId.
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. Default value is 10 if not specified. Maximum can be 25.
+          schema:
+            type: number
+        - name: pageKey
+          in: query
+          description: The user must provide page value if nextPage is available in last response
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            Success Response
+            | Parameter  | Type    | Description                                                        | Requirement |
+            |------------|---------|--------------------------------------------------------------------|-------------|
+            | nextPageKey   | String  | TProvide the key obtained in previous page response, to access the next page | Mandatory  |
+            | id         | String  | An alphanumeric string that identifies information about the feature. | Mandatory  |
+            | name       | String  | Provides information about the version of the feature.              | Mandatory  |
+            | description| String  | A field that provides information about the feature.                | Mandatory  |
+            | active     | Boolean | Provides information about the status of the feature.               | Mandatory  |
+            | service    | String  | The parameter provides information about the service to which the feature is associated. | Mandatory  |
+            | usage      | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Features'
+        '400':
+          description: |
+            Cannot combine service name and service Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '500':
+          description: |
+            Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /features/{featureId}:
+    get:
+      tags:
+        - Features
+      summary: Feature of Id
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: GetFeatureById
+      description: You can use the API to retrieve the features associated with a feature Id.
+      parameters:
+        - name: featureId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            | Parameter  | Type    | Description                                                        | Requirement |
+            |------------|---------|--------------------------------------------------------------------|-------------|
+            | id         | String  | An alphanumeric string that identifies information about the feature. | Mandatory  |
+            | name       | String  | Provides information about the version of the feature.              | Mandatory  |
+            | description| String  | A field that provides information about the feature.                | Mandatory  |
+            | active     | Boolean | Provides information about the status of the feature.               | Mandatory  |
+            | service    | String  | The parameter provides information about the service to which the feature is associated. | Mandatory  |
+            | usage      | object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given feature id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    patch:
+      tags:
+        - Features
+      summary: Update Feature
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: UpdateFeature
+      description: You can use the API to update a feature associated with a feature Id.
+      parameters:
+        - name: featureId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: |
+          | Parameter  | Type    | Description                                                        | Requirement |
+          |------------|---------|--------------------------------------------------------------------|-------------|
+          | name       | String  | Provides information about the version of the feature.             | Optional   |
+          | description| String  | A field that provides information about the feature.               | Optional   |
+          | active     | Boolean | Provides information about the status of the feature.              | Optional   |
+          | usage      | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Optional   |
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFeatureCommand'
+        required: true
+      responses:
+        '200':
+          description: |
+            Feature updated successfully
+            | Parameter  | Type    | Description                                                        | Requirement |
+            |------------|---------|--------------------------------------------------------------------|-------------|
+            | id         | String  | An alphanumeric string that identifies information about the feature. | Mandatory  |
+            | name       | String  | Provides information about the version of the feature.             | Mandatory  |
+            | description| String  | A field that provides information about the feature.               | Mandatory  |
+            | active     | Boolean | Provides information about the status of the feature.              | Mandatory  |
+            | service    | String  | The parameter provides information about the service to which the feature is associated. | Mandatory  |
+            | usage      | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+        '400':
+          description: |
+            1. Either one of the fields should be present - name / description / active / usage.
+            2. Attribute should be of the mentioned type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given feature id is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /products:
+    post:
+      tags:
+        - Products
+      summary: Create Product
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: CreateProduct
+      description: You can use the API to create a product with one or more features.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductCommand'
+        required: true
+        description: |
+          | Parameter       | Type      | Description                                                                               | Requirement |
+          |-----------------|-----------|-------------------------------------------------------------------------------------------|-------------|
+          | sku             | String    | You can use the Stock Keeping Unit (sku) to retrieve information about the product.     | Mandatory  |
+          | name            | String    | Provides information about the product.                                                  | Mandatory  |
+          | image           | String    | This is the image of the product.                                                        | Optional   |
+          | type            | Array of strings | Provides information about the type of the entitlement.                            | Mandatory  |
+          | customAttribute | Object    | An optional field where users can store a value. Users can change the value whenever they want. | Optional   |
+          | description     | String    | A field that provides information about the product.                                      | Optional   |
+          | summary         | String    | A field that provides information about the product.                                      | Optional   |
+          | active          | Boolean   | Provides information about the status of the entitlement.                                 | Optional   |
+          | urls            | Object    | Refers to URLs associated with the SKU.                                                   | Mandatory  |
+          | usage           | Object    | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+      responses:
+        '201':
+          description: |
+            Created successfully<br>
+            | Parameter       | Type      | Description                                                                               | Requirement |
+             |-----------------|-----------|-------------------------------------------------------------------------------------------|-------------|
+             | id              | String    | An alphanumeric string that can be used to identify information about the product.       | Mandatory  |
+             | name            | String    | Provides information about the name of the product.                                       | Mandatory  |
+             | image           | String    | This is the image of the product.                                                         | Mandatory  |
+             | description     | String    | A field that provides information about the product.                                      | Mandatory  |
+             | summary         | String    | A field that provides information about the product.                                      | Mandatory  |
+             | type            | Array of strings | Provides information about the type of the entitlement.                             | Mandatory  |
+             | active          | Boolean   | Provides information about the status of the product.                                     | Mandatory  |
+             | customAttribute | Object    | An optional field where users can store a value. Users can change the value whenever they want. | Mandatory  |
+             | version         | Numeric   | Provides information about the version of the product.                                    | Mandatory  |
+             | url             | Object    | Refers to URLs associated with the SKU.                                                    | Mandatory  |
+             | usage           | Object    | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: |
+            1. Fields - Sku, name, urls, type and features are mandatory fields.  One or more fields are missing.
+            2. Given Features are not present.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '409':
+          description: |
+            1. Given sku is already present.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    get:
+      tags:
+        - Products
+      summary: Get All Products
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: GetAllProducts
+      description: You can use the API to retrieve the list of products and the features associated with it.
+      parameters:
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. Default value is 10 if not specified. Maximum can be 25
+          schema:
+            type: number
+        - name: pageKey
+          in: query
+          description: The user must provide page value if nextPage is available in last response
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            All products
+            | Parameter       | Type      | Description                                                                                      | Requirement |
+            |-----------------|-----------|--------------------------------------------------------------------------------------------------|-------------|
+            | nextPageKey        | String    | Provide the key obtained in previous page response, to access the next page.  | Mandatory  |
+            | id              | String    | An alphanumeric string that can be used to identify information about the product.              | Mandatory  |
+            | name            | String    | Provides information about the version of the product.                                          | Mandatory  |
+            | image           | String    | This is the image of the product.                                                                | Mandatory  |
+            | description     | String    | A field that provides information about the product.                                           | Mandatory  |
+            | type            | Array of strings | Provides information about the type of the product.                                     | Mandatory  |
+            | summary         | String    | A field that provides information about the product.                                           | Mandatory  |
+            | active          | Boolean   | Provides information about the status of the product.                                          | Mandatory  |
+            | customAttribute | Object    | An optional field where users can store a value. Users can change the value whenever they want.| Mandatory  |
+            | version         | Numeric   | Provides information about the version of the product.                                         | Mandatory  |
+            | urls            | Object    | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage           | Object    | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+            | bundleSku       | String    | The parameter retrieves the information about the bundles.                                      | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllProducts'
+        '400':
+          description: |
+            1.parameter pageSize must be a non-negative/non-zero number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /products/{sku}:
+    post:
+      tags:
+        - Products
+      summary: Adjust a Product
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: AdjustProduct
+      description: You can use the API to either add or remove features in a product. However, you won’t be able to remove all the features in a product. We can also update attributes such as name, image, type, summary, and description using this api.
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustProductCommand'
+        required: true
+        description: |
+          | Parameter      | Type          | Description                                                                                      | Requirement |
+          |----------------|---------------|--------------------------------------------------------------------------------------------------|-------------|
+          | name           | String        | Provides information about the version of the product.                                          | Optional   |
+          | image          | String        | This is the image of the product.                                                                | Optional   |
+          | type           | String        | Provides information about the type of the product.                                             | Optional   |
+          | description    | String        | A field that provides information about the product.                                            | Optional   |
+          | summary        | String        | A field that provides information about the product.                                            | Optional   |
+          | active         | Boolean       | Provides information about the status of the product.                                           | Optional   |
+          | urls           | Object        | Refers to URLs associated with the SKU.                                                         | Optional   |
+          | featuresAdd    | Object        | The parameter adds a feature to a product.                                                      | Mandatory  |
+          | usage          | Numeric       | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Optional   |
+          | featuresRemove | Array of strings | The parameter removes a feature in a product.                                                | Mandatory  |
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter       | Type      | Description                                                                                      | Requirement |
+            |-----------------|-----------|--------------------------------------------------------------------------------------------------|-------------|
+            | id              | String    | An alphanumeric string that can be used to identify information about the product.              | Mandatory  |
+            | name            | String    | Provides information about the name of the product.                                             | Mandatory  |
+            | image           | String    | This is the image of the product.                                                                | Mandatory  |
+            | description     | String    | A field that provides information about the product.                                            | Mandatory  |
+            | summary         | String    | A field that provides information about the product.                                            | Mandatory  |
+            | active          | Boolean   | Provides information about the status of the product.                                           | Mandatory  |
+            | customAttribute | Object    | An optional field where users can store a value. Users can change the value whenever they want.| Mandatory  |
+            | version         | Numeric   | Provides information about the version of the product.                                          | Mandatory  |
+            | urls            | Object    | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage           | Object    | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+            | bundleSku       | String    | The parameter retrieves the information about the bundles.                                      | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: |
+            1. Either one of the fields should be present - featuresAdd / featuresRemove.
+            2. Attribute should be of the mentioned type.
+            3. Given Features are not present.
+            4. No valid attributes found in the request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given sku is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: |
+            1. Given feature id is not associated with this sku.
+            2. Given feature id is already present with this sku.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    get:
+      tags:
+        - Products
+      summary: Product of SKU
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to retrieve the information about the product using its SKU.
+      operationId: GetProduct
+      parameters:
+        - name: version
+          in: query
+          schema:
+            type: integer
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            | Parameter       | Type      | Description                                                                                      | Requirement |
+            |-----------------|-----------|--------------------------------------------------------------------------------------------------|-------------|
+            | id              | String    | An alphanumeric string that can be used to identify information about the entitlement.           | Mandatory  |
+            | name            | String    | Provides information about the version of the entitlement.                                      | Mandatory  |
+            | image           | String    | This is the image of the product.                                                                | Mandatory  |
+            | type            | String    | Provides information about the type of the entitlement.                                         | Mandatory  |
+            | description     | String    | A field that provides information about the entitlement.                                         | Mandatory  |
+            | summary         | String    | A field that provides information about the entitlement.                                         | Mandatory  |
+            | active          | Boolean   | Provides information about the status of the entitlement.                                       | Mandatory  |
+            | customAttribute | Object    | An optional field where users can store a value. Users can change the value whenever they want. | Mandatory  |
+            | version         | Numeric   | Provides information about the version of the entitlement.                                       | Mandatory  |
+            | urls            | Object    | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage           | Object    | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+            | bundleSku       | String    | The parameter retrieves the information about the bundles.                                      | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given sku is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    patch:
+      tags:
+        - Products
+      summary: Update Product
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to update the product information using the product Id.
+      operationId: UpdateProduct
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductCommand'
+        required: true
+        description: |
+          | Parameter   | Type          | Description                                                         | Requirement |
+          |-------------|---------------|---------------------------------------------------------------------|-------------|
+          | name        | String        | Provides information about the version of the entitlement.         | Optional   |
+          | image       | String        | This is the image of the product.                                   | Optional   |
+          | type        | Array of strings | Provides information about the type of the entitlement.        | Optional   |
+          | description | String        | A field that provides information about the entitlement.            | Optional   |
+          | summary     | String        | A field that provides information about the entitlement.            | Optional   |
+          | active      | Boolean       | Provides information about the status of the entitlement.          | Optional   |
+          | urls        | Object        | Refers to URLs associated with the SKU.                             | Optional   |
+      responses:
+        '200':
+          description: |
+            Product updated successfully
+            | Parameter       | Type          | Description                                                                                      | Requirement |
+            |-----------------|---------------|--------------------------------------------------------------------------------------------------|-------------|
+            | id              | String        | An alphanumeric string that can be used to identify information about the product.              | Optional   |
+            | name            | String        | Provides information about the version of the product.                                          | Optional   |
+            | image           | String        | This is the image of the product.                                                                | Optional   |
+            | type            | Array of strings | Provides information about the type of the product.                                         | Mandatory  |
+            | description     | String        | A field that provides information about the product.                                            | Optional   |
+            | summary         | String        | A field that provides information about the product.                                            | Optional   |
+            | active          | Boolean       | Provides information about the status of the product.                                           | Optional   |
+            | customAttribute | Object        | An optional field where users can store a value. Users can change the value whenever they want.| Optional   |
+            | version         | Numeric       | Provides information about the version of the product.                                          | Optional   |
+            | urls            | Object        | Refers to URLs associated with the SKU.                                                         | Optional   |
+            | usage           | Object        | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Optional   |
+            | bundleSku       | String        | The parameter retrieves the information about the bundles.                                      | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: |
+            1. Attribute should be of the mentioned type
+            2. Either one of the fields should be present - name / description / active / urls / summary / type / image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given Sku is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /products/{sku}/features/{featureId}:
+    post:
+      tags:
+        - Products
+      summary: Update the usagePlan of a Feature in a Product
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: UpdateUsagePlan
+      description: You can use the API to update the usage plan of a feature that is associated with a product.
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: featureId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsagePlanProductCommand'
+        required: true
+        description: |
+          | Parameter | Type   | Description                                              | Requirement |
+          |-----------|--------|----------------------------------------------------------|-------------|
+          | max       | Numeric| Provides information about the maximum usage limit of a feature. | Mandatory  |
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter       | Type          | Description                                                                                      | Requirement |
+            |-----------------|---------------|--------------------------------------------------------------------------------------------------|-------------|
+            | id              | String        | An alphanumeric string that can be used to identify information about the product.              | Mandatory  |
+            | name            | String        | Provides information about the version of the product.                                          | Mandatory  |
+            | image           | String        | This is the image of the product.                                                                | Mandatory  |
+            | type            | Array of strings | Provides information about the type of the product.                                         | Mandatory  |
+            | description     | String        | A field that provides information about the product.                                            | Mandatory  |
+            | summary         | String        | A field that provides information about the product.                                            | Mandatory  |
+            | active          | Boolean       | Provides information about the status of the product.                                           | Mandatory  |
+            | customAttribute | Object        | An optional field where users can store a value. Users can change the value whenever they want.| Mandatory  |
+            | version         | Numeric       | Provides information about the version of the product.                                          | Mandatory  |
+            | urls            | Object        | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage           | Object        | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+            | bundleSku       | String        | The parameter retrieves the information about the bundles.                                      | Optional   |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: |
+            1. Fields - max are mandatory fields.  One or more fields are missing.
+            2. Attribute should be of the mentioned type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: |
+            1. Given feature id is not associated with this sku.
+            2. Given Sku is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /bundles:
+    post:
+      tags:
+        - Bundles
+      summary: Create Bundle
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: CreateBundle
+      description: You can use the API to create a bundle with one or more products. Products with the same trackable features cannot be added in a bundle. A trackable feature is one that has usage information associated with it.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBundleCommand'
+        required: true
+        description: |
+          | Parameter | Type         | Description                                                  | Requirement |
+          |-----------|--------------|--------------------------------------------------------------|-------------|
+          | active    | Boolean      | Provides information about the status of the bundle.        | Optional   |
+          | products  | Array of strings | It includes the list of products to be added in the bundle. | Mandatory  |
+          | sku       | String       | You can use the Stock Keeping Unit (sku) to retrieve information about the bundle. | Mandatory  |
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter | Type    | Description                                                                                   | Requirement |
+            |-----------|---------|-----------------------------------------------------------------------------------------------|-------------|
+            | id        | String  | An alphanumeric string that can be used to identify information about the bundle. This is the SKU provided in the request. | Mandatory  |
+            | version   | Numeric | Provides information about the version of the bundle. This is used to track the change history of the bundle. | Mandatory  |
+            | active    | Boolean | Provides information about the status of the bundle.                                          | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+        '400':
+          description: Cannot create Bundle due to missing/invalid bundle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+    get:
+      tags:
+        - Bundles
+      summary: Get All Bundles
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to retrieve all the bundles and its associated products. This is a paginated API.
+      operationId: GetAllBundles
+      responses:
+        '200':
+          description: |
+            All Bundles
+            | Parameter       | Type          | Description                                                                                      | Requirement |
+            |-----------------|---------------|--------------------------------------------------------------------------------------------------|-------------|
+            | id              | String        | An alphanumeric string that can be used to identify information about the bundle.                | Mandatory  |
+            | version         | Numeric       | Provides information about the version of the bundle.                                          | Mandatory  |
+            | active          | Boolean       | Provides information about the status of the bundle.                                           | Mandatory  |
+            | name            | String        | Provides information about the name of the bundle.                                          | Mandatory  |
+            | image           | String        | This is the image of the product.                                                                | Mandatory  |
+            | description     | String        | A field that provides information about the product.                                            | Mandatory  |
+            | summary         | String        | A field that provides information about the product.                                            | Mandatory  |
+            | urls            | Object        | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage           | Object        | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+            | nextPageKey        | String        | Provides information about the value to be passed in the next request to fetch the subsequent bundle records. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bundles'
+              examples:
+                Get all Bundles:
+                  value:
+                    items:
+                      - version: integer
+                        active: boolean
+                        name: string
+                        description: string
+                        products:
+                          product_sku:
+                            summary: string
+                            image: string
+                            customAttribute: null
+                            features:
+                              feature_id1:
+                                usage:
+                                  metric: string
+                                  max: integer
+                              feature_id2:
+                                usage:
+                                  metric: string
+                                  max: integer
+                              feature_id3:
+                                usage: string
+                            urls:
+                              download: string
+                              launch: string
+                              learning: string
+                            name: string
+                            description: string
+                            type:
+                              - string
+                            version: integer
+                        id: string
+                    nextPageKey: string
+        '204':
+          description: No Content
+          content: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /bundles/{sku}:
+    post:
+      tags:
+        - Bundles
+      summary: Adjust a Bundle
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: AdjustaBundle
+      description: You can use the API to either add or remove products in a bundle. However you won’t be able to remove all the products from a bundle. At any given point, products with same trackable features cannot exist in a bundle.
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustBundleCommand'
+        required: true
+        description: |
+          | Parameter       | Type         | Description                                                                             | Requirement |
+          |-----------------|--------------|-----------------------------------------------------------------------------------------|-------------|
+          | active          | Boolean      | Provides information about the status of the entitlement.                               | Optional   |
+          | productsAdd     | String Array | The parameter adds one or more products to the bundle.                                   | Mandatory  |
+          | productsRemove  | String Array | The parameter removes one or more products from the bundle.                              | Mandatory  |
+
+
+          <br><br>Note: Either "productsAdd" or "productsRemove" has to be provided in the request body.
+      responses:
+        '201':
+          description: |
+            Created successfully
+            | Parameter   | Type    | Description                                                                                       | Requirement |
+            |-------------|---------|---------------------------------------------------------------------------------------------------|-------------|
+            | id          | String  | An alphanumeric string that can be used to identify information about the bundle.               | Mandatory  |
+            | version     | Numeric | Provides information about the version of the bundle.                                         | Mandatory  |
+            | active      | Boolean | Provides information about the status of the bundle.                                          | Mandatory  |
+            | name        | String  | Provides information about the name of the product.                                           | Mandatory  |
+            | image       | String  | This is the image of the product.                                                                | Mandatory  |
+            | description | String  | A field that provides information about the bundle.                                          | Mandatory  |
+            | summary     | String  | A field that provides information about the bundle.                                          | Mandatory  |
+            | version     | Numeric | Provides information about the version of the product.                                        | Mandatory  |
+            | urls        | Object  | Refers to URLs associated with the SKU.                                                         | Mandatory  |
+            | usage       | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+        '400':
+          description: |
+            1. Cannot adjust bundle due to missing/invalid Bundle details
+            2. Inactive product cannot be present in bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity is not having required permission to do this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Given bundleId is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: |
+            1.Products with same trackable features cannot be added to the bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+      deprecated: false
+    patch:
+      tags:
+        - Bundles
+      summary: Update a Bundle
+      security:
+        - TIDv4AppAuth:
+            - application
+      operationId: UpdateBundle
+      description: You can use this api to Update the details of a bundle.
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBundleCommand'
+        required: true
+        description: |
+          | Parameter   | Type    | Description         | Requirement |
+          |-------------|---------|---------------------|-------------|
+          | active      | Boolean | Provides information about the status of the bundle.   | Optional    |
+          | name        | String  | Provides information about the name of the bundle.     | Optional    |
+          | description | String  | Provides information about the description of the bundle. | Optional  |
+      responses:
+        '200':
+          description: Bundle updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+        '400':
+          description: |
+            validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Provided Identity does not have the required permission to perform this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: Bundle with the given SKU is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: |
+            1. Products with the same trackable features cannot be added to the bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+      deprecated: false
+    get:
+      tags:
+        - Bundles
+      summary: Bundle of Id
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use the API to retrieve a bundle and the products associated with it using a bundle SKU.
+      operationId: GetBundle
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            | Parameter   | Type    | Description                                                                                   | Requirement |
+            |-------------|---------|-----------------------------------------------------------------------------------------------|-------------|
+            | id          | String  | An alphanumeric string that can be used to identify information about the bundle.           | Mandatory  |
+            | version     | Numeric | Provides information about the version of the bundle.                                      | Mandatory  |
+            | active      | Boolean | Provides information about the status of the bundle.                                       | Mandatory  |
+            | name        | String  | Provides information about the version of the bundle.                                      | Mandatory  |
+            | image       | String  | This is the image of the product.                                                            | Mandatory  |
+            | description | String  | A field that provides information about the bundle.                                        | Mandatory  |
+            | summary     | String  | A field that provides information about the bundle.                                        | Mandatory  |
+            | url         | Object  | Refers to URLs associated with the SKU.                                                     | Mandatory  |
+            | usage       | Object  | Provides information about the usage of a feature. The value will be saved using the "Metric" and "Max" variables. | Mandatory  |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+        '204':
+          description: Bundle not found for the given Bundle Id
+          content: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+      deprecated: false
+  /entitlements:
+    get:
+      tags:
+        - Entitlements
+      summary: Search entitlements by accountId, orderId, sku, orderItemId, type and status
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this API to retrieve all the entitlements related to an account and the query parameters associated with it.
+
+        **Notes:**
+        - If `status` is not specified in the request, `active` entitlements will be returned.
+        - If `status` is explicitly specified as `all`, entitlements of all `status` will be returned.
+        - If `type` is not specified in the request, `delayed` entitlements will not be returned.
+        - If `type` is explicitly specified as `all`, entitlements of all `type` will be returned.
+        - `status`, `pageKey`, and `pageSize` can be optionally combined with any of the below supported queries.
+
+        **Supported Query Combinations:**
+        | Query Combination                                    | Description                                   |
+        | ----------------------------------------------------- | --------------------------------------------- |
+        | `GET /entitlements?accountId={a1}`                    | Retrieve entitlements for a specific account. |
+        | `GET /entitlements?accountId={a1}&orderId={o1}`       | Retrieve entitlements for a specific order.   |
+        | `GET /entitlements?accountId={a1}&orderItemId={oI1}`  | Retrieve entitlements for a specific order item. |
+        | `GET /entitlements?accountId={a1}&sku={s1}`           | Retrieve entitlements for a specific SKU.     |
+        | `GET /entitlements?accountId={a1}&type={t1}`          | Retrieve entitlements of a specific type.      |
+      parameters:
+        - name: accountId
+          required: true
+          in: query
+          schema:
+            type: string
+          description: You can retrieve entitlements belonging to an account.
+        - name: orderId
+          in: query
+          schema:
+            type: string
+          description: Represents the identifier for the order associated with an entitlement.
+        - name: sku
+          in: query
+          schema:
+            type: string
+          description: An alphanumeric string that can be used to identify information about the product.
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/EntitlementRequestStatus'
+          description: Provides the status of an entitlement.
+        - name: orderItemId
+          in: query
+          schema:
+            type: string
+          description: Represents the identifier for the item within an order.
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/EntitlementRequestType'
+          description: Provides information about the type of the entitlement.
+        - name: pageKey
+          in: query
+          schema:
+            type: string
+          description: Provides information about the value to be passed in next request to fetch the subsequent entitlement records
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. If a value is not specified, it will be defaulted to 10.The maximum value can be 25.
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchEntitlementResponseExample'
+              example:
+                items:
+                  - id: f263dea0-9d65-47ee-aa5c-5e60ebbdf5f9
+                    sourceSystem: DX
+                    type: standard
+                    status: active
+                    startDate: '2023-12-15T05:37:28Z'
+                    endDate: '2023-12-16T05:37:28Z'
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                    version: 1
+                    accountId: '1093038874905'
+                    licenses:
+                      inUse: 4
+                      total: 10
+                    customAttribute: '{ latitude = 23.56, longitude = 5464.456 }'
+                    isMaxEnforcement: true
+                    orderId: 123-45-2023
+                    orderItemId: AAA-BBB-CCC-000000
+                    orchestration: null
+                  - id: 2bef0be5-25d6-4670-afa4-cec89b575bd3
+                    sourceSystem: DX
+                    type: standard
+                    status: active
+                    startDate: '2023-12-15T05:37:28Z'
+                    endDate: '2023-12-16T05:37:28Z'
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: product
+                    version: 1
+                    accountId: '1093038874905'
+                    licenses:
+                      inUse: 4
+                      total: 10
+                    customAttribute: '{ latitude = 23.56, longitude = 5464.456 }'
+                    isMaxEnforcement: true
+                    orderId: 123-45-2023
+                    orderItemId: AAA-BBB-CCC-000000
+                    orchestration:
+                      type: downgrade
+                      jobId: 9725f467-6039-4a69-8676-68f2d0d9a9df
+                nextPageKey: 18257997-76eb-4c79-a1f2-2b2f594880f3
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              examples:
+                invalidStatus:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Query Parameter 'status' should be 'active', 'expired', 'not_activated', or 'all'
+                    status: 400
+                invalidQueryParamCombination:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Combination of query parameters not allowed
+                    status: 400
+                invalidType:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Query Parameter 'type' should be 'standard', 'trial', 'enterprise', 'delayed', or 'all'
+                    status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+    post:
+      tags:
+        - Entitlements
+      summary: Create entitlement
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use this API to create an entitlement by using a product or bundle sku. After creating an entitlement you can start registering licenses under it.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEntitlement'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEntitlementResponseExample'
+              example:
+                id: 3525ca6c-b3fb-491d-9ec4-a1c5790255f1
+                sourceSystem: DX
+                type: standard
+                status: active
+                startDate: '2023-12-15T05:37:28Z'
+                endDate: '2023-12-16T05:37:28Z'
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                version: 1
+                accountId: '1093038874905'
+                licenses:
+                  inUse: 4
+                  total: 10
+                customAttribute: '{ latitude = 23.56, longitude = 5464.456 }'
+                isMaxEnforcement: true
+                orderId: 123-45-2023
+                orderItemId: AAA-BBB-CCC-000000
+                orchestration: null
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example1'
+              examples:
+                missingFields:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: One or more mandatory fields are missing.
+                    status: 400
+                missingProductFields:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: One or more mandatory fields in the 'product' attribute are missing.
+                    status: 400
+                endDateEarlierThanStartDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: End Date cannot be earlier than Start Date.
+                    status: 400
+                renewalDateEarlierThanStartDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Renewal Date cannot be earlier than Start Date.
+                    status: 400
+                endDateEarlierThanRenewalDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: End Date cannot be earlier than Renewal Date.
+                    status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{id}:
+    get:
+      tags:
+        - Entitlements
+      summary: Get entitlement by ID
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this API to retrieve the information about an entitlement by using its Id.<br><br>
+        <b>Note:</b> If `version` is not specified in the request the latest version entitlement will be returned
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: An alphanumeric string that can be used to identify information about the entitlement.
+          schema:
+            type: string
+        - name: version
+          in: query
+          description: Provides information about the version of the entitlement.
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entitlement'
+              example:
+                id: 6733e9a6-a3b7-4c80-9eab-2306cd22aed2
+                sourceSystem: DX
+                type: standard
+                status: not_activated
+                startDate: '2023-12-15T05:37:28Z'
+                endDate: '2023-12-16T05:37:28Z'
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                version: 1
+                accountId: '1093038874905'
+                licenses:
+                  inUse: 4
+                  total: 10
+                customAttribute: '{ latitude = 23.56, longitude = 5464.456 }'
+                isMaxEnforcement: true
+                orderId: 123-45-2023
+                orderItemId: null
+                orchestration:
+                  type: downgrade
+                  jobId: c3049952-0bb9-4033-a153-a64640c2093a
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example1'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: End date cannot be greater than start date
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              examples:
+                entitlementIdNotFound:
+                  value:
+                    type: NOT_FOUND_ERROR
+                    title: Given Entitlement ID is not found.
+                    status: 404
+                versionNumberNotFound:
+                  value:
+                    type: NOT_FOUND_ERROR
+                    title: Given Version Number is not found in Entitlement ID.
+                    status: 404
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+    patch:
+      tags:
+        - Entitlements
+      summary: Update entitlement
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use the API to update the details of an entitlement. When you update an entitlement, it will be notified to the users through email. The link for the events docs is given below:
+        [Events Documentation](https://docs.trimblecloud.com/events/)
+
+        **Notes**:
+        - `type` can be updated only from `delayed` to `standard` types.
+        - `startDate`, `endDate`, `status`, `accountId`, and `sku` can be updated only if there are no licenses issued against that entitlement.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: An alphanumeric string that can be used to identify information about the entitlement.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchEntitlement'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entitlement'
+              example:
+                id: 2586ac8e-2cf8-4a74-8583-5d30d7e00e15
+                sourceSystem: DX
+                type: standard
+                status: not_activated
+                startDate: '2023-12-15T05:37:28Z'
+                endDate: '2023-12-25T05:37:28Z'
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                version: 1
+                accountId: '1093038874905'
+                licenses:
+                  inUse: 4
+                  total: 10
+                customAttribute: '{ latitude = 23.56, longitude = 5464.456 }'
+                isMaxEnforcement: true
+                orderId: 123-45-2023
+                orderItemId: null
+                orchestration:
+                  type: downgrade
+                  jobId: fcecbd0e-bd1e-411b-b5cc-c753130fb776
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example1'
+              examples:
+                invalidStatus:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: 'Provided invalid status. Supported status: [active, not_activated, expired, and disabled]'
+                    status: 400
+                notActivatedStartDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Status cannot be modified to not_activated if the current time is greater than entitlement start date
+                    status: 400
+                expireBeforeEndDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Status cannot be modified to expire if the current time is less than entitlement end date
+                    status: 400
+                invalidActiveDate:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Status cannot be modified to active if the current time is not between entitlement start date and end date
+                    status: 400
+                skuUpdateWithActiveLicenses:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: SKU cannot be updated if there are active licenses
+                    status: 400
+                accountIdUpdateWithActiveLicenses:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: AccountId cannot be updated if there are active licenses
+                    status: 400
+                statusUpdateWithActiveLicenses:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Status cannot be updated if there are active licenses
+                    status: 400
+                dateUpdateWithActiveLicenses:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Start date and end date cannot be updated if there are active licenses
+                    status: 400
+                typeUpdateFromDelayedToStandard:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR
+                    title: Type update from delayed to standard is only supported.
+                    status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{id}/orchestrations:
+    get:
+      tags:
+        - Entitlements
+      summary: Get all orchestrations in the entitlement
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this API to retrieve information about the jobs that have been scheduled for an entitlement Id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: An alphanumeric string that can be used to identify information about the entitlement.
+          schema:
+            type: string
+        - name: active
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: |
+            Specifies the status of jobs to be retrieved.
+
+            - `true`: Retrieve details of scheduled jobs.
+            - `false`: Retrieve details of completed jobs.
+
+            Note: The value is case-sensitive.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListJobsResponseExample'
+              example:
+                items:
+                  - jobId: 70a79bd5-0de3-40f6-baf0-a4f9e1fd4150
+                    type: downgrade
+                  - jobId: 70a79bd5-0de3-40f6-baf0-a4f9e1fd4156
+                    type: renewal
+                nextPageKey: null
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/BAD_REQUEST_ERROR,
+                title: active query param is mandatory and it should be either true/false
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/NOT_FOUND_ERROR
+                title: Given Entitlement ID is not found.
+                status: 404
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/licenses:
+    get:
+      tags:
+        - Licenses
+      summary: Search all licenses
+      security:
+        - TIDv4UserAuth:
+            - user
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use the API to retrieve all the licenses associated with the parameters specified in the request url.
+
+        **Notes:**
+          - If `status` is not specified in the request, `active` licenses will be fetched.
+          - If a user token is provided, licenses assigned to the TID UUID obtained from the token will be returned.
+          - `status`, `pageKey`, and `pageSize` can be optionally combined with any of the below supported queries.
+          
+          **Supported Query Combinations in App Token:**
+          | Query Combination                                              | Description                                                   |
+          | ------------------------------------------------------------- | ------------------------------------------------------------- |
+          | `GET /entitlements/licenses?holderId={h1}`                     | Retrieve licenses for a specific holder ID.                   |
+          | `GET /entitlements/licenses?holderId={h1}&featureId={[f1,f2]}` | Retrieve licenses for a specific holder ID and feature ID(s).  |
+          | `GET /entitlements/licenses?holderId={h1}&featurePrefix={[fp1,fp2]}` | Retrieve licenses for a specific holder ID and feature prefix(es). |
+          | `GET /entitlements/licenses?accountId={a1}&holderId={h1}`      | Retrieve licenses for a specific account and holder ID.       |
+          | `GET /entitlements/licenses?accountId={a1}&holderId={h1}&featureId={[f1,f2]}` | Retrieve licenses for a specific account, holder ID, and feature ID(s). |
+          | `GET /entitlements/licenses?accountId={a1}&holderId={h1}&featurePrefix={[fp1,fp2]}` | Retrieve licenses for a specific account, holder ID, and feature prefix(es). |
+          
+          **Supported Query Combinations in User Token (Holder ID obtained from token):**
+          | Query Combination                                       | Description                                      |
+          | -------------------------------------------------------- | ------------------------------------------------ |
+          | `GET /entitlements/licenses?accountId={a1}`              | Retrieve licenses for a specific account.         |
+          | `GET /entitlements/licenses?accountId={a1}&featureId={[f1,f2]}` | Retrieve licenses for a specific account and feature ID(s). |
+          | `GET /entitlements/licenses?accountId={a1}&featurePrefix={[fp1,fp2]}` | Retrieve licenses for a specific account and feature prefix(es). |
+      parameters:
+        - name: accountId
+          in: query
+          schema:
+            type: string
+          description: You can retrieve licenses belonging to an account using this parameter.
+        - name: holderId
+          in: query
+          schema:
+            type: string
+          description: Provides information about the uuid of the user in the TID system.
+        - name: featureId
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: You can use this parameter to retrieve the ID of the feature to which a product is associated.
+        - name: featurePrefix
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: The parameter takes the first alphabet of the feature Id or the first few and adds it as a prefix. You can use the featurePrefix attribute to filter the licenses.
+        - name: status
+          in: query
+          description: Provides the status of a license.
+          schema:
+            $ref: '#/components/schemas/EntitlementRequestStatus'
+        - name: pageKey
+          in: query
+          schema:
+            type: string
+          description: The parameter Provide the key obtained in previous page response, to access the next page.
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 10
+          description: Specifies the number of records to be fetched in response. If a value is not specified, it will be defaulted to 10.The maximum value can be 25.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchLicenseResponseExample'
+              example:
+                items:
+                  - id: 293a34ab-f9da-441a-9170-0cb566326a4a
+                    holderId: 4f8f6adf-f262-441b-ad65-b8b2f480bee3
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                      featureIds:
+                        SKP-PRO-YR-01:
+                          - FEA-SKP-STORAGE
+                          - FEA-SKP-USERS
+                        TRMB-CONN-PREM-BUS:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                  - id: 1d5a188c-960d-4fad-9efc-bdca2d673fe3
+                    holderId: f41fd917-50bb-4eb8-b2dd-0e0e4bda628a
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: SUB-EST-CON-FREE-D
+                      type: product
+                      featureIds:
+                        SUB-EST-CON-FREE-D:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                          - SUB-EST-USAGE-MAX
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                nextPageKey: null
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example1'
+              examples:
+                invalidAccountId:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Query Param 'accountId' should be string
+                    status: 400
+                invalidEntitlementId:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Query Param 'entitlementId' should be string
+                    status: 400
+                invalidQueryParamCombination:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Combination of query params not allowed
+                    status: 400
+                missingAccountIdWithSKU:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: Account Id query param is required along with sku
+                    status: 400
+                missingTIDForApplication:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: TID is mandatory queryParam for identity type - application
+                    status: 400
+                featureIdFilterLimitExceeded:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: The upper limit for feature Id filter is 10 features.
+                    status: 400
+                featurePrefixFilterLimitExceeded:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: The upper limit for feature Prefix filter is 10 features.
+                    status: 400
+                unsupportedTIDForUser:
+                  value:
+                    type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                    title: 'tid queryParam is not supported for identity type - user: Operation not allowed'
+                    status: 400
+        '403':
+          description: |
+            Forbidden<br>
+            Note: This api supports both the application & user token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{eId}/licenses:
+    get:
+      tags:
+        - Licenses
+      summary: Get licenses by entitlement ID
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use the API to retrieve all the licenses associated with the parameters specified in the request URL.
+
+        **Notes:**
+        - If `status` is not specified in the request, `active` licenses will be fetched.
+        - Licenses assigned to the TID, UUID obtained from the token will be returned.
+        - `status`, `pageKey`, and `pageSize` query parameters can be optionally included.
+      parameters:
+        - name: eId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: An alphanumeric string that can be used to identify information about the entitlement.
+        - name: status
+          in: query
+          description: provides the status of the license
+          schema:
+            $ref: '#/components/schemas/EntitlementRequestStatus'
+        - name: pageKey
+          in: query
+          schema:
+            type: string
+          description: This parameter provide the key obtained in previous page response, to access the next page
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. If a value is not specified, it will be defaulted to 10.The maximum value can be 25.
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchLicenseByEidResponseExample'
+              example:
+                items:
+                  - id: bf1d4c6c-d528-434c-9e5a-150bc8ce13f0
+                    holderId: 0393d3f1-7b51-4013-a079-a21ec976e9b2
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                      featureIds:
+                        SKP-PRO-YR-01:
+                          - FEA-SKP-STORAGE
+                          - FEA-SKP-USERS
+                        TRMB-CONN-PREM-BUS:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                  - id: ec96ca28-103b-4686-8b8c-90e45c89f291
+                    holderId: f1002322-b4cf-4945-9765-c8e3f014c422
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                      featureIds:
+                        SKP-PRO-YR-01:
+                          - FEA-SKP-STORAGE
+                          - FEA-SKP-USERS
+                        TRMB-CONN-PREM-BUS:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                nextPageKey: null
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: AccountId is mandatory
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/sku/{sku}/licenses:
+    get:
+      tags:
+        - Licenses
+      summary: Search all licenses by SKU
+      security:
+        - TIDv4UserAuth:
+            - user
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use the API to retrieve all the licenses associated with the sku specified in the request url.
+
+        **Notes:**
+        - If `status` is not specified in the request, `active` licenses will be fetched.
+        - Licenses assigned to the TID, UUID obtained from the token will be returned.
+        - `status`, `pageKey`, and `pageSize` query parameters can be optionally included.
+
+        **Supported Query Combinations:**
+        | Query Combination                                        | Description                                           |
+        | --------------------------------------------------------- | ----------------------------------------------------- |
+        | `GET /entitlements/sku/{sku}/licenses?holderId={h1}`     | Retrieve licenses for a specific SKU and holder ID.   |
+        | `GET /entitlements/sku/{sku}/licenses?accountId={a1}`    | Retrieve licenses for a specific SKU and account.      |
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          description: You can use the Stock Keeping Unit (sku) to retrieve information about the product.
+          schema:
+            type: string
+        - name: accountId
+          in: query
+          schema:
+            type: string
+          description: You can retrieve entitlements belonging to an account using this parameter.
+        - name: holderId
+          in: query
+          schema:
+            type: string
+          description: Provides information about the uuid of the user in the TID system.
+        - name: status
+          in: query
+          description: Provides information about the status of the license.
+          schema:
+            $ref: '#/components/schemas/EntitlementRequestStatus'
+        - name: pageKey
+          in: query
+          schema:
+            type: string
+          description: This parameter provide the key obtained in previous page response, to access the next page
+        - name: pageSize
+          in: query
+          description: Specifies the number of records to be fetched in response. If a value is not specified, it will be defaulted to 10.The maximum value can be 25.
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchLicenseBySkuResponseExample'
+              example:
+                items:
+                  - id: ed301e5a-c715-49ef-81c9-944c55d4775b
+                    holderId: 47d5d03b-f381-4dd4-988b-a269f8d4fdc6
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                      featureIds:
+                        SKP-PRO-YR-01:
+                          - FEA-SKP-STORAGE
+                          - FEA-SKP-USERS
+                        TRMB-CONN-PREM-BUS:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                  - id: c6f472f1-3b57-4b3a-a53d-0987219a89f8
+                    holderId: f9792c6f-2ca7-46c3-b455-f68b094f1c3c
+                    activationDate: '2023-12-15T05:37:28Z'
+                    deactivationDate: '2024-12-15T05:37:28Z'
+                    status: active
+                    sku:
+                      id: TC-01-BUSS-PREM
+                      type: bundle
+                      featureIds:
+                        SKP-PRO-YR-01:
+                          - FEA-SKP-STORAGE
+                          - FEA-SKP-USERS
+                        TRMB-CONN-PREM-BUS:
+                          - FEA-PROJ-USERS
+                          - FEA-CON-PREMIUM
+                    entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                    accountId: '1093038874905'
+                    customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+                nextPageKey: null
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: AccountId is mandatory
+                status: 400
+        '403':
+          description: |
+            Forbidden<br>
+            Note: This api supports both the application & user token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{eId}/licenses/assign:
+    post:
+      tags:
+        - Licenses
+      summary: Assign License
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: You can use this API to create a new license under an entitlement Id. You can create multiple licenses under an entitlement Id. However, you can’t create a license and associate it with multiple entitlement Ids. Entitlements of type delayed cannot be used for registering licenses
+      parameters:
+        - name: eId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: An alphanumeric string that can be used to identify information about the entitlement.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterLicense'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/License'
+              example:
+                id: 54823f5c-b5c4-40cf-98d9-e84e3948f24f
+                holderId: 8f13051a-5f16-456f-ad63-cfab8104e1ed
+                activationDate: '2023-12-15T05:37:28Z'
+                deactivationDate: '2024-12-15T05:37:28Z'
+                status: active
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                  featureIds:
+                    SKP-PRO-YR-01:
+                      - FEA-SKP-STORAGE
+                      - FEA-SKP-USERS
+                    TRMB-CONN-PREM-BUS:
+                      - FEA-PROJ-USERS
+                      - FEA-CON-PREMIUM
+                entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                accountId: '1093038874905'
+                customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/licenses/{id}:
+    get:
+      tags:
+        - Licenses
+      summary: Get License by ID
+      security:
+        - TIDv4UserAuth:
+            - user
+        - TIDv4AppAuth:
+            - application
+      description: You can use this API to retrieve information about the license by using its license Id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: An alphanumeric string that can be used to identify information about the license.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/License'
+              example:
+                id: 993de9ad-36d4-4a75-9e2b-81cff4487423
+                holderId: 2cc1d8db-adeb-40d2-8cb2-9a4f326eee8d
+                activationDate: '2023-12-15T05:37:28Z'
+                deactivationDate: '2024-12-15T05:37:28Z'
+                status: active
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                  featureIds:
+                    SKP-PRO-YR-01:
+                      - FEA-SKP-STORAGE
+                      - FEA-SKP-USERS
+                    TRMB-CONN-PREM-BUS:
+                      - FEA-PROJ-USERS
+                      - FEA-CON-PREMIUM
+                entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                accountId: '1093038874905'
+                customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+        '403':
+          description: |
+            Forbidden<br>
+            Note: This api supports both the application & user token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/NOT_FOUND_ERROR
+                title: Given License ID is not found.
+                status: 404
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+    patch:
+      tags:
+        - Licenses
+      summary: Update License
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: 'You can use this API to update the holderId and custom attributes. When you update a license, it will be notified to the users through email. The link for the events docs is given below: `https://docs.trimblecloud.com/events/`'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: An alphanumeric string that can be used to identify information about the license.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchLicense'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/License'
+              example:
+                id: a35de698-cd00-41c5-9096-e95b33b2a946
+                holderId: 77a6a0c1-2831-40df-af3c-5d4ca7b4e2f9
+                activationDate: '2023-12-15T05:37:28Z'
+                deactivationDate: '2024-12-15T05:37:28Z'
+                status: active
+                sku:
+                  id: TC-01-BUSS-PREM
+                  type: bundle
+                  featureIds:
+                    SKP-PRO-YR-01:
+                      - FEA-SKP-STORAGE
+                      - FEA-SKP-USERS
+                    TRMB-CONN-PREM-BUS:
+                      - FEA-PROJ-USERS
+                      - FEA-CON-PREMIUM
+                entitlement: 
+                      id: "913a2cb6-8627-43bb-a8c8-dfc03f593666"
+                      version : 2
+                accountId: '1093038874905'
+                customAttribute: '{ name = Bruce Wayne, city = Gotham }'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: Either one of the fields should be present - holderId/customAttribute.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{eId}/licenses/revoke:
+    post:
+      tags:
+        - Licenses
+      summary: Revoke License
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: This api is used to revoke the license under an entitlement
+      parameters:
+        - name: eId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Revoke'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Revoke'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Revoke'
+      responses:
+        '200':
+          description: Success
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{eId}/licenses/finiteAssign:
+    post:
+      tags:
+        - Licenses
+      summary: Finite License Assign
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this API to assign multiple licenses under an entitlement. However, you can’t create licenses across multiple entitlement Ids. Entitlements of type delayed cannot be used for Finite License Assignment. There should be enough seats available for the operation to succeed .
+      parameters:
+        - name: eId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Provides information about the entitlement Id that is associated with the license
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RegisterFiniteLicense'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/License'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: AccountId is mandatory
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /entitlements/{eId}/licenses/finiteRevoke:
+    post:
+      tags:
+        - Licenses
+      summary: Finite License Revoke
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this API to delete a list of licenses associated with an entitlement id. 
+        <b>Note:</b> You can assign upto 10 licenses using this api.
+      parameters:
+        - name: eId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Provides information about the entitlement Id that is associated with the license
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiniteLicenseRevoke'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: AccountId is mandatory
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+        '404':
+          description: When we try to delete any of licenses associated with an entitlement ID that is not found in EMS, it will throw a not found error. The license revoke won't occur for other licenses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              example:
+                type: NOT_FOUND_ERROR
+                title: 'Given License ID: {licenseId} is not found.'
+                status: 404
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+  /orchestrations:
+    post:
+      tags:
+        - Orchestrations
+      summary: Create an orchestration Job
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: "Notes\r\n * An orchestration is a job that will perform changes against and entitlement and its associated licenses\r\n * The jobs created will get get executed in an asynchronous fashion\r\n * Every orchestration will create a new version of the entitlement, except for `Cancel` operation. The new version of entitlement will have the same `id`\r\n * If `isImmediate` flag is set to `true` operation will happen instantly, and current entitlement version's `endDate` will be updated to current dateTime \r\n * If `isImmediate` flag is set to `false` operation will get scheduled at the `endDate` of the current entitlement version. If no `endDate` is present the orchestration cannot be created\r\n * Changes requested as part of this orchestration will be reflected in new version and current version entitlement will expire\r\n * If the `startDate` is not specified in request, the new entitlement version will have the `startDate` same as the existing entitlement version's `endDate` \r\n * If the `endDate` is not specified in request, the new entitlement version will not have the `endDate`\r\n * `jobInfo` will provide detailed information about status and reasons for failure if any\r\n * Exisiting version of the entitlement will be in `disabled` state once orchestration is successful"
+      parameters:
+        - name: action
+          in: query
+          schema:
+            $ref: '#/components/schemas/JobType'
+          required: true
+        - name: isImmediate
+          in: query
+          schema:
+            type: boolean
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequestExample'
+            examples:
+              Upgrade:
+                value:
+                  sku:
+                    id: SKP-PRO-01
+                    type: product
+                  orderId: 12e95b78-0d7e-4e40-846d-56bff7245a47
+                  sourceSystem: AX
+                  endDate: '2024-12-19T12:36:38Z'
+                  startDate: '2023-12-19T12:36:38Z'
+                  entitlementId: f4582db8-7b11-44fd-b0f1-df26918e4084
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              Renewal:
+                value:
+                  orderId: 914b0ad9-fb3d-4183-9523-338e2bd825ec
+                  sourceSystem: AX
+                  endDate: '2024-12-19T12:36:38Z'
+                  startDate: '2023-12-19T12:36:38Z'
+                  entitlementId: e9086356-66d6-4004-b136-7a7f4efa6e2d
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              Downgrade:
+                value:
+                  sku:
+                    id: SKP-PRO-01
+                    type: product
+                  orderId: 46e2760f-aa5a-468e-bf23-f4d350043358
+                  sourceSystem: AX
+                  endDate: '2024-12-19T12:36:38Z'
+                  startDate: '2023-12-19T12:36:38Z'
+                  entitlementId: 6251e983-0fbf-4f4b-9b7d-e65a2408adb2
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              Cancel:
+                value:
+                  entitlementId: dc2e6804-8c84-4aae-8596-ff8fdf563209
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              ChangeAccount:
+                value:
+                  accountId: '12312323234234'
+                  entitlementId: 34922658-17f2-488a-b7cb-9b242e50bc3e
+                  endDate: '2024-12-19T12:36:38Z'
+                  startDate: '2023-12-19T12:36:38Z'
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              ChangeSku:
+                value:
+                  sku:
+                    id: TRMB-CONNECT
+                    type: bundle
+                  entitlementId: 46d87e54-e2d9-447a-b631-45393117c072
+                  endDate: '2024-12-19T12:36:38Z'
+                  startDate: '2023-12-19T12:36:38Z'
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+              ChangeDates:
+                value:
+                  status: active
+                  startDate: '2023-12-14T12:36:38Z'
+                  endDate: '2024-12-14T12:36:38Z'
+                  entitlementId: 56a459f0-fa2b-4633-96ec-bdbc1594531f
+                  callback:
+                    url: https://trimble.service/callback
+                    authentication: trimble
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+              examples:
+                Upgrade:
+                  value:
+                    jobId: 91f0afdf-aa23-48f2-960b-d18a72ec9bc2
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: upgrade
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Renewal:
+                  value:
+                    jobId: 20707905-a3dd-45f3-8132-7de76e18680e
+                    executionStartTime: '2024-05-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: renewal
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Downgrade:
+                  value:
+                    jobId: 0248b3c5-86d5-42bb-9784-a8f2d255c7bb
+                    executionStartTime: '2023-12-25T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: downgrade
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Cancel:
+                  value:
+                    jobId: 207611b9-c5a2-42a2-886b-f9d8ba2ef677
+                    executionStartTime: '2024-05-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: cancel
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeAccount:
+                  value:
+                    jobId: 5bf59ebf-3054-43e1-ab34-edf97f536c05
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeAccount
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeSku:
+                  value:
+                    jobId: 2fff6941-883a-45a4-88c3-371b9c14dc99
+                    executionStartTime: 2023-12-20T08:51Z
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeSku
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeDates:
+                  value:
+                    jobId: de94c3e7-e97b-45bb-a118-6e74c0ec4429
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeDates
+                    status: scheduled
+                    jobInfo: Job is scheduled
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: required fields are missing.
+                status: 400
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error403Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+                title: Provided Identity is not having permission to do the operation
+                status: 403
+  /orchestrations/{jobId}:
+    get:
+      tags:
+        - Orchestrations
+      summary: Gets the Orchestration status by Job ID
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: An API used to retrieve orchestration job details by orchestration Job ID.
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: The parameter gives the uuid of the job that has been scheduled.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+              examples:
+                Upgrade:
+                  value:
+                    jobId: fa9f9ece-ff7f-49a3-b498-8622e57f47be
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: upgrade
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Renewal:
+                  value:
+                    jobId: 75930dba-219c-4499-98ea-8b4a8a096089
+                    executionStartTime: '2024-05-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: renewal
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Downgrade:
+                  value:
+                    jobId: feafc5db-c642-4523-95e0-0d2ac4513e22
+                    executionStartTime: '2023-12-25T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: downgrade
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                Cancel:
+                  value:
+                    jobId: b50c3c62-538b-4210-a5a2-e2fb76546eaa
+                    executionStartTime: '2024-05-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: cancel
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeAccount:
+                  value:
+                    jobId: 6bc1539f-52b1-450a-a39a-e9544496aaab
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeAccount
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeSku:
+                  value:
+                    jobId: 9699c40a-0c28-4349-babb-8de769c9f6ef
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeSku
+                    status: scheduled
+                    jobInfo: Job is scheduled
+                ChangeDates:
+                  value:
+                    jobId: 2390492b-0fc9-42ca-9657-0bea70527720
+                    executionStartTime: '2023-12-20T08:32:51Z'
+                    executionEndTime: '2023-12-21T08:32:51Z'
+                    jobCreatedTime: '2023-12-20T08:32:51Z'
+                    type: changeDates
+                    status: scheduled
+                    jobInfo: Job is scheduled
+        '404':
+          description: When we try to get orchestration details for a license ID that is not found in EMS, it will throw a not found error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/NOT_FOUND_ERROR
+                title: 'Given License ID: {licenseId} is not found.'
+                status: 404
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+                title: Issue from EMS systems
+                status: 500
+    delete:
+      tags:
+        - Orchestrations
+      summary: Cancels a scheduled Orchestration
+      security:
+        - TIDv4AppAuth:
+            - application
+      description: |
+        You can use this api to cancel the scheduled orchestration jobs by using its jobId
+          <b>Note:</b> Only the scheduled jobs are allowed to be cancelled
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The parameter gives the uuid of the job that has been scheduled.
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400Example2'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+                title: Only jobs with Scheduled status are allowed to delete.
+                status: 400
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error404Example'
+              example:
+                type: https://docs.trimble.com/business-systems/errors/NOT_FOUND_ERROR
+                title: 'JobId not found for UUID: {uuid}'
+                status: 404
+  /consumers/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1:
+    get:
+      tags:
+        - Events
+      summary: Supported Entitlement Events
+      description: >
+        The Trimble Events service is used to publish events. To refer to the
+        base URL, see the documentation for events below.
+
+
+        [Trimble Events
+        Documentation](https://doc-embeds.trimblecloud.com/events/index.html#section/Basepath-URL)
+
+
+        EMSV4.1 publishes events to notify external applications when
+        entitlement changes occur. A single subscription to this event will
+        return events on 7 entitlement actions. See the example section of the
+        schema for example payloads for each of these 7 actions. The actions
+        are:
+
+
+        1. entitlement_created
+
+        2. entitlement_updated
+
+        3. entitlement_expired
+
+        4. delayed_entitlement_created
+
+        5. delayed_entitlement_updated
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsSchema'
+              examples:
+                Entitlement_Created:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: entitlement
+                    time: 2023-01-01T01:00:00z
+                    source: ems
+                    subject: entitlement_created
+                    data: >-
+                      {"action":"entitlement_created","accountId":"16000034354",
+                      "inUse": "0", "total": "2","type":
+                      "standard","entitlementId":"dfadfasV1","orderItemId":
+                      null,"version":"2","sku":{"id":"SKU-1V1","type":"product"},"effectiveDates":{"startDate":"2022-01-01","endDate":"2022-12-31"}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                Entitlement_Updated:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: entitlement
+                    time: 2023-01-01T01:00:00z
+                    source: ems
+                    subject: entitlement_updated
+                    data: >-
+                      {"action":"entitlement_updated","accountId":"16000034354",
+                      "inUse": "0", "total": "2","type":
+                      "standard","entitlementId":"dfadfasV1","sku":{"id":"SKU-1V1","type":"product"},
+                      "orderItemId":
+                      null,"version":"2","effectiveDates":{"startDate":"2022-01-01","endDate":"2022-12-31"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                Entitlement_Expired:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: entitlement
+                    time: 2023-01-01T01:00:00z
+                    source: ems
+                    subject: entitlement_expired
+                    data: >-
+                      {"action":"entitlement_expired","accountId":"16000034354","entitlementId":"dfadfasV1", 
+                      "inUse": "0", "total": "2","type":
+                      "standard","sku":{"id":"SKU-1V1","type":"product"},"orderItemId":
+                      null,"version":"2","effectiveDates":{"startDate":"2022-01-01","endDate":"2022-12-31"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                Delayed_Entitlement_Created:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: entitlement
+                    time: 2023-01-01T01:00:00z
+                    source: ems
+                    subject: delayed_entitlement_created
+                    data: >-
+                      {"action":"delayed_entitlement_created",
+                      "accountId":"16000034354","entitlementId":"dfadfasV1",
+                      "inUse": "0", "total": "2","productId":"SKU-SKPV1"      
+                      ,"type":"delayed"     ,"orderItemId":
+                      null,"version":"2","effectiveDates":{"startDate":"2022-01-01","endDate":"2022-12-31"}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v1.4
+                    datacontenttype: application/json
+                Delayed_Entitlement_Updated:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: entitlement
+                    time: 2023-01-01T01:00:00z
+                    source: ems
+                    subject: delayed_entitlement_updated
+                    data: >-
+                      {"action":"delayed_entitlement_updated","accountId":"16000034354",
+                      "inUse": "0", "total":
+                      "2","entitlementId":"dfadfasV1","productId":"SKU-SKPV1"      
+                      ,"orderItemId":
+                      null,"version":"2","type":"delayed"    
+                      ,"effectiveDates":{"startDate":"2022-01-01","endDate":"2022-12-31"}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v1.4
+  /consumers/namespaces/com.trimble.tcp.entitlement/events/license.v4/v4.1:
+    get:
+      tags:
+        - Events
+      summary: Supported License Events
+      description: >
+        The Trimble Events service is used to publish events. For the base URL
+        and more details, refer to the [Trimble Events
+        Documentation](https://doc-embeds.trimblecloud.com/events/index.html#section/Basepath-URL).
+
+
+        EMSV4.1 publishes events to notify external applications when license
+        changes occur. A single subscription to this event will return events on
+        6 license actions. See the example section of the schema for payloads of
+        each action. The actions are:
+
+
+        1. license_created
+
+        2. license_revoked
+
+        3. license_sku_changed
+
+        4. license_holder_id_changed
+
+        5. license_updated
+
+        6. finite_license_assigned
+
+        7. finite_license_revoked
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/EventsSchema'
+              examples:
+                License_Created:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: license_created
+                    data: >-
+                      {"action":"license_created",
+                      "accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                License_Revoked:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: license_revoked
+                    data: >-
+                      {"action":"license_revoked", 
+                      "accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                License_Sku_Changed:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: license_sku_changed
+                    data: >-
+                      {"action":"license_sku_changed","accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"},"skuChanges":{"targetEntitlement":{"entitlementId":"E2V1","productId":"SKU-2V1"}}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                License_Holder_Id_Changed:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: license_holder_id_changed
+                    data: >-
+                      {"action":"license_holder_id_changed","accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"},"holderIdChanges":{"targetHolderId":"user-uuid-2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                License_attribute_changed:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: License_attribute_changed
+                    data: >-
+                      {"action":"License_attribute_changed","accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"},"skuChanges":{"targetEntitlement":{"entitlementId":"E2V1","productId":"SKU-2V1"}},"holderIdChanges":{"targetHolderId":"user-uuid-2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                Finite_License_Created:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: finite_license_created
+                    data: >-
+                      {"action":"finite_license_created",
+                      "accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+                Finite_License_Revoked:
+                  value:
+                    id: 124hjk4khllk5hj4
+                    specversion: 1
+                    type: license
+                    time: '2022-01-01T01:00:00'
+                    source: ems
+                    subject: finite_license_revoked
+                    data: >-
+                      {"action":"finite_license_revoked", 
+                      "accountId":"16000034354","licenseId":"licenseId-1","sku":{"id":"SKU-1V1","type":"product"},,"holderId":"user-uuid-1","entitlementId":"E1V1","entitlement":{"id":"uuid1","version":"2"}}
+                    dataschema: >-
+                      https://cloud.api.trimble.com/events/registry/1.0/schematype/data/namespaces/com.trimble.tcp.entitlement/events/entitlement.v4/v4.1
+                    datacontenttype: application/json
+components:
+  securitySchemes:
+    TIDv4UserAuth:
+      type: oauth2
+      description: OAuth Authentication using Authorization Code (user token) grant types to access the EMS v4.1 APIs
+      flows:
+        authorizationCode:
+          authorizationUrl: https://stage.id.trimblecloud.com/oauth/authorize
+          tokenUrl: https://stage.id.trimblecloud.com/oauth/token
+          scopes:
+            user: User context access for general B2C interactions
+    TIDv4AppAuth:
+      type: oauth2
+      description: OAuth Authentication using Client Credentials (application token) grant types to access the EMS v4.1 APIs
+      flows:
+        clientCredentials:
+          tokenUrl: https://stage.id.trimblecloud.com/oauth/token
+          scopes:
+            application: Application specific access for general B2B interactions
+  schemas:
+    CreateServiceCommand:
+      title: CreateServiceCommand
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          example: sketchup
+        active:
+          type: boolean
+          default: true
+    Service:
+      title: Service
+      type: object
+      properties:
+        id:
+          type: string
+          example: 8ad4e8ac-f1f2-4cf5-b103-feea042d3ee0
+        name:
+          type: string
+          example: sketchup
+        active:
+          type: boolean
+    Services:
+      title: Services
+      type: object
+      properties:
+        nextPageKey:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+    UpdateServiceCommand:
+      title: UpdateServiceCommand
+      required:
+        - active
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+    CreateFeatureCommand:
+      title: CreateFeatureCommand
+      required:
+        - name
+        - service
+        - featureId
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        featureId:
+          type: string
+        service:
+          type: string
+        usage:
+          type: object
+          properties:
+            max:
+              type: number
+              example: 10
+            metric:
+              type: string
+    Feature:
+      title: Feature
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        service:
+          type: string
+        usage:
+          type: object
+          properties:
+            metric:
+              type: string
+            max:
+              type: number
+              example: 10
+    Features:
+      title: Features
+      type: object
+      properties:
+        nextPageKey:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+    UpdateFeatureCommand:
+      title: UpdateFeatureCommand
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        usage:
+          type: object
+          properties:
+            max:
+              type: number
+              example: 10
+            metric:
+              type: string
+    CreateProductCommand:
+      title: CreateProductCommand
+      required:
+        - features
+        - name
+        - type
+        - urls
+        - sku
+      type: object
+      properties:
+        sku:
+          type: string
+          example: SKP-PRO-YR-WEB-01
+        name:
+          type: string
+          example: SketchUp Pro
+        image:
+          type: string
+          example: sketchup_pro.png
+        type:
+          type: array
+          items:
+            type: string
+            example: desktop
+        customAttribute:
+          type: object
+          example: null
+        description:
+          type: string
+          example: Fast, easy 3D modeling for anything you can imagine. Our powerful web modeler, with all the features you need to turn your designs into real things. Share, collaborate, and store your projects in the cloud. Gain flexibility and peace of mind. Create scaled drawing sets in 2D with LayOut. Wow your clients with a walkthrough of their project on Microsoft HoloLens, HTC Vive, or Oculus, on your phone or tablet.
+        summary:
+          type: string
+          example: SketchUp Pro for Desktop | 2D design documentation | SketchUp for Web | VR model viewing | Enhanced design research
+        active:
+          type: boolean
+        urls:
+          $ref: '#/components/schemas/Urls'
+        features:
+          $ref: '#/components/schemas/FeatureIdWithUsage'
+    FeatureIdWithUsage:
+      title: FeatureIdWithUsage
+      type: object
+      properties:
+        feature_id:
+          type: object
+          properties:
+            usage:
+              $ref: '#/components/schemas/ProductUsageCommand'
+    ProductUsageCommand:
+      title: ProductUsageCommand
+      type: object
+      properties:
+        max:
+          type: number
+          example: 30
+    ProductWithKey:
+      title: ProductWithKey
+      type: object
+      properties:
+        sku:
+          type: object
+          properties:
+            name:
+              type: string
+            image:
+              type: string
+            type:
+              type: array
+              items:
+                type: string
+            description:
+              type: string
+            summary:
+              type: string
+            version:
+              type: integer
+              format: int32
+              example: 1
+            urls:
+              $ref: '#/components/schemas/Urls'
+            features:
+              $ref: '#/components/schemas/FeatureResponse'
+    LicenseProduct:
+      title: LicenseProduct
+      type: object
+      properties:
+        sku:
+          type: object
+          properties:
+            name:
+              type: string
+            image:
+              type: string
+            type:
+              type: array
+              items:
+                type: string
+            description:
+              type: string
+            summary:
+              type: string
+            version:
+              type: integer
+              format: int32
+              example: 1
+            urls:
+              $ref: '#/components/schemas/Urls'
+    FeatureResponse:
+      title: FeatureResponse
+      type: object
+      properties:
+        featureId:
+          type: object
+          properties:
+            usage:
+              type: object
+              properties:
+                max:
+                  type: integer
+                  example: 30
+                metric:
+                  type: string
+                  example: GB
+    ProductResponse:
+      title: ProductResponse
+      type: object
+      properties:
+        id:
+          type: string
+          example: SKP-PRO-YR-WEB-01
+        name:
+          type: string
+          example: SketchUp Pro
+        image:
+          type: string
+          example: sketchup_pro.png
+        type:
+          type: array
+          items:
+            type: string
+            example: desktop
+        description:
+          type: string
+          example: Fast, easy 3D modeling for anything you can imagine. Our powerful web modeler, with all the features you need to turn your designs into real things. Share, collaborate, and store your projects in the cloud. Gain flexibility and peace of mind. Create scaled drawing sets in 2D with LayOut. Wow your clients with a walkthrough of their project on Microsoft HoloLens, HTC Vive, or Oculus, on your phone or tablet.
+        summary:
+          type: string
+          example: SketchUp Pro for Desktop | 2D design documentation | SketchUp for Web | VR model viewing | Enhanced design research
+        active:
+          type: boolean
+          example: true
+        customAttribute:
+          type: object
+          example: null
+        version:
+          type: integer
+          format: int32
+          example: 1
+        urls:
+          $ref: '#/components/schemas/Urls'
+        features:
+          $ref: '#/components/schemas/FeatureResponse'
+        bundle:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductBundles'
+    EventsSchema:
+      title: EventsSchema
+      type: object
+      properties:
+        id:
+          type: string
+        specversion:
+          type: string
+        type:
+          type: string
+        time:
+          type: string
+        source:
+          type: string
+        subject:
+          type: string
+        data:
+          type: string
+        dataschema:
+          type: string
+        datacontenttype:
+          type: string
+    Product:
+      title: Product
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+        type:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        summary:
+          type: string
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int32
+        urls:
+          $ref: '#/components/schemas/Urls'
+        features:
+          type: array
+          items:
+            type: string
+    AllProducts:
+      title: AllProducts
+      type: object
+      properties:
+        nextPageKey:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+    UpdateProductCommand:
+      title: UpdateProductCommand
+      type: object
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+        type:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        summary:
+          type: string
+        active:
+          type: boolean
+        urls:
+          $ref: '#/components/schemas/Urls'
+    Urls:
+      title: Urls
+      type: object
+      properties:
+        launch:
+          type: string
+          example: https://sketchup.com/plans-and-pricing/sketchup-pro
+        download:
+          type: string
+          example: https://sketchup.com/plans-and-pricing#for-professional
+        learning:
+          type: string
+          example: https://sketchup.com/products/sketchup-pro
+    ProductBundles:
+      title: ProductBundles
+      type: object
+      properties:
+        bundleSku:
+          type: string
+          example: SKU-PRO-WEB-01
+        version:
+          type: number
+          example: 1
+    UpdateUsagePlanProductCommand:
+      title: UpdateUsagePlanProductCommand
+      type: object
+      properties:
+        max:
+          type: number
+          example: 10
+    AdjustProductCommand:
+      title: AdjustProductCommand
+      required:
+        - featuresAdd
+        - featuresRemove
+      type: object
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+        type:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        summary:
+          type: string
+        active:
+          type: boolean
+        urls:
+          $ref: '#/components/schemas/Urls'
+        featuresAdd:
+          $ref: '#/components/schemas/FeatureIdWithUsage'
+        featuresRemove:
+          type: array
+          items:
+            type: string
+    CreateBundleCommand:
+      title: CreateBundleCommand
+      required:
+        - products
+        - sku
+      type: object
+      properties:
+        active:
+          type: boolean
+        products:
+          type: array
+          items:
+            type: string
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    UpdateBundleCommand:
+      type: object
+      properties:
+        active:
+          type: boolean
+        name:
+          type: string
+        description:
+          type: string
+    Bundle:
+      title: Bundle
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: integer
+        active:
+          type: boolean
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductWithKey'
+    Bundles:
+      type: array
+      items:
+        $ref: '#/components/schemas/Bundle'
+    AdjustBundleCommand:
+      title: AdjustBundleCommand
+      required:
+        - productsAdd
+        - productsRemove
+      type: object
+      properties:
+        active:
+          type: boolean
+        productsAdd:
+          type: array
+          items:
+            type: string
+        productsRemove:
+          type: array
+          items:
+            type: string
+    error:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+        title:
+          type: string
+          example: error message
+        status:
+          type: integer
+          example: 400
+    UnauthorizedError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          example: UNAUTHORIZED_ERROR
+        errorMessage:
+          type: string
+    BadRequestError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/VALIDATION_ERROR
+        title:
+          type: string
+          example: error message
+        status:
+          type: integer
+          example: 400
+    NotFoundError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/NOT_FOUND_ERROR
+        title:
+          type: string
+          example: error message
+        status:
+          type: integer
+          example: 404
+    ForbiddenError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/FORBIDDEN_ERROR
+        title:
+          type: string
+          example: Provided Identity is not having permission to do the operation
+        status:
+          type: integer
+          example: 403
+    ServerError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/SERVER_ERROR
+        title:
+          type: string
+          example: Issue from EMS systems
+        status:
+          type: integer
+          example: 500
+    ConflictError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://docs.trimble.com/business-systems/errors/CONFLICT_ERROR
+        title:
+          type: string
+          example: error message
+        status:
+          type: integer
+          example: 409
+    CreateEntitlement:
+      required:
+        - accountId
+        - orderId
+        - sku
+        - sourceSystem
+        - startDate
+        - total
+        - type
+      type: object
+      properties:
+        sourceSystem:
+          maxLength: 64
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/EntitlementType'
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        sku:
+          $ref: '#/components/schemas/EntitlementSku'
+        total:
+          type: integer
+          format: int32
+        accountId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+        isMaxEnforcement:
+          type: boolean
+          default: true
+        orderId:
+          maxLength: 32
+          minLength: 1
+          type: string
+        orderItemId:
+          maxLength: 32
+          minLength: 1
+          type: string
+          nullable: true
+      additionalProperties: false
+    CreateEntitlementResponseExample:
+      required:
+        - accountId
+        - id
+        - isMaxEnforcement
+        - licenses
+        - orchestration
+        - orderId
+        - sku
+        - sourceSystem
+        - startDate
+        - status
+        - type
+        - version
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+        sourceSystem:
+          maxLength: 64
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/EntitlementType'
+        status:
+          $ref: '#/components/schemas/EntitlementStatus'
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        sku:
+          $ref: '#/components/schemas/EntitlementSku'
+        version:
+          type: integer
+          format: int32
+          default: 1
+        accountId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        licenses:
+          $ref: '#/components/schemas/LicenseCount'
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+        isMaxEnforcement:
+          type: boolean
+          default: true
+        orderId:
+          maxLength: 32
+          minLength: 1
+          type: string
+        orderItemId:
+          maxLength: 32
+          minLength: 1
+          type: string
+          nullable: true
+        orchestration:
+          $ref: '#/components/schemas/Orchestration'
+      additionalProperties: false
+    Entitlement:
+      required:
+        - accountId
+        - id
+        - isMaxEnforcement
+        - licenses
+        - orchestration
+        - orderId
+        - sku
+        - sourceSystem
+        - startDate
+        - status
+        - type
+        - version
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+        sourceSystem:
+          maxLength: 64
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/EntitlementType'
+        status:
+          $ref: '#/components/schemas/EntitlementStatus'
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        sku:
+          $ref: '#/components/schemas/EntitlementSku'
+        version:
+          type: integer
+          format: int32
+          default: 1
+        accountId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        licenses:
+          $ref: '#/components/schemas/LicenseCount'
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+        isMaxEnforcement:
+          type: boolean
+          default: true
+        orderId:
+          maxLength: 32
+          minLength: 1
+          type: string
+        orderItemId:
+          maxLength: 32
+          minLength: 1
+          type: string
+          nullable: true
+        orchestration:
+          $ref: '#/components/schemas/Orchestration'
+      additionalProperties: false
+    EntitlementRequestStatus:
+      enum:
+        - not_activated
+        - active
+        - expired
+        - disabled
+        - all
+      type: string
+    EntitlementRequestType:
+      enum:
+        - standard
+        - trial
+        - enterprise
+        - delayed
+        - all
+      type: string
+    EntitlementSku:
+      required:
+        - id
+        - type
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/SkuType'
+      additionalProperties: false
+    EntitlementStatus:
+      enum:
+        - not_activated
+        - active
+        - expired
+        - disabled
+        - all
+      type: string
+    EntitlementType:
+      enum:
+        - standard
+        - trial
+        - enterprise
+        - delayed
+        - all
+      type: string
+    EntitlementTypeUpdate:
+      enum:
+        - standard
+      type: string
+    Error400Example1:
+      required:
+        - status
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+        title:
+          minLength: 1
+          type: string
+        status:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Error400Example2:
+      required:
+        - status
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+        title:
+          minLength: 1
+          type: string
+        status:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Error403Example:
+      required:
+        - status
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+        title:
+          minLength: 1
+          type: string
+        status:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Error404Example:
+      required:
+        - status
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+        title:
+          minLength: 1
+          type: string
+        status:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Error500Example:
+      required:
+        - status
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+        title:
+          minLength: 1
+          type: string
+        status:
+          type: integer
+          format: int32
+      additionalProperties: false
+    FiniteLicenseRevoke:
+      required:
+        - licenseIds
+      type: object
+      properties:
+        licenseIds:
+          maxItems: 10
+          type: array
+          items:
+            type: string
+            example: as56sd56xdd56ss6d56s5
+      additionalProperties: false
+    Job:
+      required:
+        - executionStartTime
+        - jobCreatedTime
+        - jobId
+        - jobInfo
+        - status
+        - type
+      type: object
+      properties:
+        jobId:
+          minLength: 1
+          type: string
+        executionStartTime:
+          type: string
+          format: date-time
+        executionEndTime:
+          type: string
+          format: date-time
+        jobCreatedTime:
+          type: string
+          format: date-time
+        type:
+          $ref: '#/components/schemas/JobType'
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        jobInfo:
+          minLength: 1
+          type: string
+      additionalProperties: false
+    JobMinimal:
+      required:
+        - jobId
+        - type
+      type: object
+      properties:
+        jobId:
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/JobType'
+      additionalProperties: false
+    JobRequestExample:
+      type: object
+      additionalProperties: false
+    JobStatus:
+      enum:
+        - scheduled
+        - cancelled
+        - inProgress
+        - completed
+      type: string
+    JobType:
+      enum:
+        - upgrade
+        - renewal
+        - downgrade
+        - cancel
+        - changeSku
+        - changeAccount
+        - changeDates
+      type: string
+    License:
+      required:
+        - accountId
+        - activationDate
+        - entitlementId
+        - holderId
+        - id
+        - sku
+        - status
+      type: object
+      properties:
+        id:
+          minLength: 1
+          type: string
+        holderId:
+          minLength: 1
+          type: string
+        activationDate:
+          type: string
+          format: date-time
+        deactivationDate:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/EntitlementStatus'
+        sku:
+          $ref: '#/components/schemas/LicenseSku'
+        entitlement:
+          type: object
+          properties:
+            id: 
+              type: string
+            version :
+              type: integer
+        accountId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+      additionalProperties: false
+    LicenseCount:
+      type: object
+      properties:
+        inUse:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int32
+      additionalProperties: false
+    LicenseSku:
+      required:
+        - featureIds
+        - id
+        - type
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/SkuType'
+        featureIds:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      additionalProperties: false
+    ListJobsResponseExample:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobMinimal'
+        nextPageKey:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    Orchestration:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/JobType'
+        jobId:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Revoke:
+      required:
+        - licenseId
+      type: object
+      properties:
+        licenseId:
+          minLength: 1
+          type: string
+      additionalProperties: false
+    PatchEntitlement:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/EntitlementStatus'
+        type:
+          $ref: '#/components/schemas/EntitlementTypeUpdate'
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        accountId:
+          maxLength: 64
+          minLength: 1
+          type: string
+          nullable: true
+        sku:
+          $ref: '#/components/schemas/EntitlementSku'
+        orderId:
+          type: string
+          nullable: true
+        orderItemId:
+          type: string
+          nullable: true
+        total:
+          type: integer
+          format: int32
+        isMaxEnforcement:
+          type: boolean
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+      additionalProperties: false
+    PatchLicense:
+      type: object
+      properties:
+        holderId:
+          type: string
+          nullable: true
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+      additionalProperties: false
+    RegisterFiniteLicense:
+      required:
+        - holderId
+      type: object
+      properties:
+        holderId:
+          maxLength: 64
+          minLength: 1
+          type: string
+          example: ascde29191912ee432w3
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          example: '{ latitude = 23.56, longitude = 5464.456 }'
+          nullable: true
+      additionalProperties: false
+    RegisterLicense:
+      required:
+        - holderId
+      type: object
+      properties:
+        holderId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        customAttribute:
+          maxLength: 256
+          minLength: 1
+          type: string
+          nullable: true
+      additionalProperties: false
+    SearchEntitlementResponseExample:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entitlement'
+        nextPageKey:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    SearchLicenseByEidResponseExample:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/License'
+        nextPageKey:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    SearchLicenseBySkuResponseExample:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/License'
+        nextPageKey:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    SearchLicenseResponseExample:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/License'
+        nextPageKey:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    SkuType:
+      enum:
+        - product
+        - bundle
+      type: string
